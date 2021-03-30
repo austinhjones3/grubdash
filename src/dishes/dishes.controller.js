@@ -11,8 +11,9 @@ function list(req, res, next) {
 }
 
 function create(req, res, next) {
-  const { name, desc, price, image } = res.locals;
-  res.status(201).json({ data: { name, desc, price, image, id: nextId() } });
+  const { name, description, price, image_url } = req.body.data;
+  const id = nextId();
+  res.status(201).json({ data: { id, name, description, image_url, price } });
 }
 
 function read(req, res, next) {
@@ -27,6 +28,7 @@ function update(req, res, next) {
   dish.description = description;
   dish.price = price;
   dish.image_url = image_url;
+
   res.json({ data: dish });
 }
 
@@ -83,11 +85,20 @@ function hasDishProps(req, res, next) {
   return next();
 }
 
-// let lastDishId = dishes.reduce((maxId, dish) => Math.max(maxId, dish.id), 0);
+function idsMatch(req, res, next) {
+  if (!req.body.data.id) return next();
+  if (req.body.data.id !== req.params.dishId) {
+    return next({
+      status: 400,
+      message: `Dish id does not match route id. Dish: ${req.body.data.id}, Route: ${req.params.dishId}`,
+    });
+  }
+  return next();
+}
 
 module.exports = {
   list,
   create: [hasDishProps, create],
   read: [dishExists, read],
-  update: [dishExists, hasDishProps, update],
+  update: [dishExists, hasDishProps, idsMatch, update],
 };
