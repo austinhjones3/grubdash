@@ -693,11 +693,12 @@ describe("orders router", () => {
       expect(response.status).toBe(400);
     });
 
+    //
     test("returns 400 if status is missing", async () => {
-      orders.push({ ...validOrder, id: "25" });
+      orders.push({ ...validOrder, id: "25" }); //> pending
       const expected = "status";
       const data = { ...validOrder, id: "25" };
-      delete data[expected];
+      delete data[expected]; //> status missing
 
       const response = await request(app)
         .put(`${ATTACHED_PATH}/25`)
