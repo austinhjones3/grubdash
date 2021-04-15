@@ -13,7 +13,9 @@ function list(req, res, next) {
 function create(req, res, next) {
   const { name, description, price, image_url } = req.body.data;
   const id = nextId();
-  res.status(201).json({ data: { id, name, description, image_url, price } });
+  const newDish = { id, name, description, image_url, price };
+  dishes.push(newDish);
+  res.status(201).json({ data: newDish });
 }
 
 function read(req, res, next) {
@@ -28,7 +30,7 @@ function update(req, res, next) {
   dish.description = description;
   dish.price = price;
   dish.image_url = image_url;
-
+  dishes[res.locals.dishIndex] = dish;
   res.json({ data: dish });
 }
 
@@ -37,11 +39,15 @@ function update(req, res, next) {
  */
 
 function dishExists(req, res, next) {
-  const foundDish = dishes.find((dish) => dish.id === req.params.dishId);
-  if (!foundDish) {
-    return next({ status: 404, message: "Dish does not exist" });
+  const foundDishIndex = dishes.findIndex((dish) => dish.id === req.params.dishId);
+  if (foundDishIndex < 0) {
+    return next({
+      status: 404,
+      message: `Dish ${req.params.dishId} does not exist`,
+    });
   }
-  res.locals.dish = foundDish;
+  res.locals.dishIndex = foundDishIndex;
+  res.locals.dish = dishes[foundDishIndex];
   return next();
 }
 

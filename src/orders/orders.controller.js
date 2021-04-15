@@ -13,7 +13,9 @@ function list(req, res, next) {
 function create(req, res, next) {
   const { deliverTo, mobileNumber, dishes } = req.body.data;
   const id = nextId();
-  res.status(201).json({ data: { deliverTo, mobileNumber, dishes, id } });
+  const newOrder = { id, deliverTo, mobileNumber, dishes };
+  orders.push(newOrder);
+  res.status(201).json({ data: newOrder });
 }
 
 function read(req, res, next) {
@@ -22,12 +24,12 @@ function read(req, res, next) {
 }
 
 function update(req, res, next) {
-  // deliverTo, mobileNumber, dishes
   const { deliverTo, mobileNumber, dishes } = req.body.data;
   const { order } = res.locals;
   order.deliverTo = deliverTo;
   order.mobileNumber = mobileNumber;
   order.dishes = dishes;
+  orders[res.locals.orderIndex] = order;
   res.json({ data: order });
 }
 
@@ -45,14 +47,17 @@ function destroy(req, res, next) {
  */
 
 function orderExists(req, res, next) {
-  const foundOrder = orders.find((order) => order.id === req.params.orderId);
-  if (!foundOrder) {
+  const foundOrderIndex = orders.findIndex(
+    (order) => order.id === req.params.orderId
+  );
+  if (foundOrderIndex < 0) {
     return next({
       status: 404,
       message: `Order ${req.params.orderId} does not exist`,
     });
   }
-  res.locals.order = foundOrder;
+  res.locals.orderIndex = foundOrderIndex;
+  res.locals.order = orders[foundOrderIndex];
   return next();
 }
 
